@@ -43,8 +43,10 @@ app.get('/category', async (req: Request, res: Response) => {
       message: 'Data fetched successfully',
       data,
     });
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error });
+  } catch (error: any) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error?.message });
   }
 });
 
@@ -85,8 +87,10 @@ app.get('/duas/:id', async (req: Request, res: Response) => {
       message: 'Data fetched successfully',
       formateSunCategoryData,
     });
-  } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error });
+  } catch (error: any) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error?.message });
   }
 });
 
