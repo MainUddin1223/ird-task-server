@@ -2,7 +2,6 @@ import cors from 'cors';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import sqlite3 from 'sqlite3';
-import _ from 'lodash';
 
 const app: Application = express();
 // app.use(cores());
@@ -69,23 +68,23 @@ app.get('/duas/:id', async (req: Request, res: Response) => {
       });
     });
 
-    // formate data by subCategory id
-    const groupBySubCategoryId = _.groupBy(data, 'subcat_id');
-
-    const subCategoryObj = Object.values(groupBySubCategoryId).map(dua =>
-      _.groupBy(dua, 'subcat_name_en')
-    );
-    const formateSunCategoryData = subCategoryObj.map(duas => {
-      const sub_category_name = Object.keys(duas)[0];
-      const dua_list = duas[sub_category_name];
-      return {
-        sub_category_name,
-        dua_list,
-      };
-    });
+    const result = data.reduce((acc: any, current: any) => {
+      const { subcat_id, subcat_name_en, ...dua } = current;
+      let el = acc.find(
+        (item: any) =>
+          item.subcat_id === subcat_id &&
+          subcat_name_en === current.subcat_name_en
+      );
+      if (!el) {
+        el = { subcat_id, subcat_name_en, dua_list: [] };
+        acc.push(el);
+      }
+      el.dua_list.push({ ...dua, subcat_id });
+      return acc;
+    }, []);
     res.status(StatusCodes.OK).json({
       message: 'Data fetched successfully',
-      formateSunCategoryData,
+      data: result,
     });
   } catch (error: any) {
     res
