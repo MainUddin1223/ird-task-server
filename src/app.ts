@@ -92,6 +92,49 @@ app.get('/duas/:id', async (req: Request, res: Response) => {
       .json({ message: error?.message });
   }
 });
+app.get('/sub-category/:id', async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const sqlQuery = `
+  SELECT sct.subcat_name_en,sct.subcat_id, dua.dua_name_en,dua.dua_id
+  FROM sub_category AS sct
+  LEFT JOIN dua ON sct.subcat_id = dua.subcat_id
+  WHERE sct.cat_id = ${id}`;
+  try {
+    const data: any = await new Promise((resolve, reject) => {
+      connectDB.all(sqlQuery, (error, rows) => {
+        if (error) {
+          console.log(error);
+          reject('Database error');
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+
+    const result = data.reduce((acc: any, current: any) => {
+      const { subcat_id, subcat_name_en, ...dua } = current;
+      let el = acc.find(
+        (item: any) =>
+          item.subcat_id === subcat_id &&
+          subcat_name_en === current.subcat_name_en
+      );
+      if (!el) {
+        el = { subcat_id, subcat_name_en, dua_list: [] };
+        acc.push(el);
+      }
+      el.dua_list.push(dua);
+      return acc;
+    }, []);
+    res.status(StatusCodes.OK).json({
+      message: 'Data fetched successfully',
+      data: result,
+    });
+  } catch (error: any) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: error?.message });
+  }
+});
 
 app.get('', (req, res) => {
   const message = `Server is running `;
